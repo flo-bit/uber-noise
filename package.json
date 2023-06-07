@@ -1,13 +1,13 @@
 {
   "name": "uber-noise",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. It is based on simplex-noise and alea.",
   "main": "dist/cjs/uber-noise.js",
   "module": "dist/esm/uber-noise.js",
   "types": "./dist/esm/uber-noise.d.ts",
   "exports": {
-    "require": "./dist/cjs/simplex-noise.js",
-    "import": "./dist/esm/simplex-noise.js"
+    "require": "./dist/cjs/uber-noise.js",
+    "import": "./dist/esm/uber-noise.js"
   },
   "files": [
     "dist/esm/package.json",
@@ -17,10 +17,11 @@
     "dist/cjs/uber-noise.js",
     "dist/cjs/uber-noise.js.map",
     "dist/cjs/uber-noise.d.ts",
+    "dist/standalone/uber-noise.js",
     "uber-noise.ts"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && mkdir -p dist && tsc --build tsconfig-commonjs.json && tsc --build tsconfig-esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json && npx browserify dist/cjs/uber-noise.js -p tinyify -o dist/standalone/uber-noise.js",
+    "build": "mkdir -p dist && tsc --build tsconfig-commonjs.json && tsc --build tsconfig-esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json && npx browserify dist/cjs/uber-noise.js -p tinyify -o dist/standalone/uber-noise.js",
     "start": "npm run build && node dist/standalone/uber-noise.js",
     "test": "jest --coverage",
     "start:dev": "npx nodemon",

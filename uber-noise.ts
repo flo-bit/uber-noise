@@ -93,7 +93,7 @@ type NoiseOptions = {
   tile?: boolean;
 };
 
-class UberNoise {
+export default class UberNoise {
   private noise2D: NoiseFunction2D | undefined;
   private noise3D: NoiseFunction3D | undefined;
   private noise4D: NoiseFunction4D | undefined;
@@ -460,16 +460,10 @@ class UberNoise {
   }
 }
 
-export default UberNoise;
-
-const noise = new UberNoise({ max: 4, scale: 100 });
-let result = "";
-for (let x = 0; x < 10; x++) {
-  for (let y = 0; y < 10; y++) {
-    result +=
-      (Math.floor(noise.get(x + 0.134, y + 0.156) * 100) / 100.0).toFixed(2) +
-      " ";
-  }
-  result += "\n";
-}
-console.log(result);
+export {
+  UberNoise,
+  NoiseOptions,
+  NoiseParameter,
+  NoiseParameterInput,
+  VectorObject,
+};
