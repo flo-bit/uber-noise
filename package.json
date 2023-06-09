@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "mkdir -p dist && tsc --build tsconfig-commonjs.json && tsc --build tsconfig-esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json && webpack",
-    "start": "npm run build && node dist/standalone/uber-noise.js",
+    "start": "npm run build && node dist/uber-noise.js",
     "test": "jest --coverage",
     "start:dev": "nodemon --watch uber-noise.ts --exec \"npm run build\"",
     "lint": "eslint . --ext .ts"
