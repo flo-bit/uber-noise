@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"
+      integrity="sha512-WoO4Ih0CDOSLYafy22wZD/mcJ7k0ESLqtQsFa6zFKnEUrbtuGU+GkLtVhgt93xa2qewG5gKEC6CWlN8OaCTSVg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- for dev -->
+    <!-- <script src="../uber-noise.js"></script> -->
+
+    <!-- for production -->
+    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+    <meta charset="utf-8" />
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body style="background: black">
+    <script>
+      var noise,
+        counter = 0,
+        img;
+
+      var settings = {
+        scale: 0.5,
+        steps: 0,
+        move: true,
+        octaves: 3,
+        gain: 0.5,
+        lacunarity: 2,
+      };
+      function setup() {
+        createCanvas(windowWidth - 2, windowHeight - 2);
+
+        createNoise();
+
+        // draw tiling noise to a graphics object
+        img = createGraphics(200, 200);
+        img.noStroke();
+        drawImage();
+
+        gui = new dat.GUI();
+        gui.add(settings, "scale", 0.01, 10).onChange(function (value) {
+          noise.scale = value;
+          drawImage();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "steps", 0, 30, 1).onChange(function (value) {
+          noise.steps = value;
+          drawImage();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "octaves", 0, 10, 1).onChange(function (value) {
+          createNoise();
+          drawImage();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "gain", 0.01, 5).onChange(function (value) {
+          noise.gain = value;
+          drawImage();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "lacunarity", 0.01, 5).onChange(function (value) {
+          noise.lacunarity = value;
+          drawImage();
+          if (!settings.update) draw();
+        });
+
+        gui.add(settings, "move").onChange(function (value) {
+          if (value) {
+            loop();
+          } else {
+            noLoop();
+          }
+        });
+      }
+
+      function createNoise() {
+        noise = new UberNoise({
+          scale: settings.scale,
+          octaves: settings.octaves,
+          gain: settings.gain,
+          lacunarity: settings.lacunarity,
+          steps: settings.steps,
+          tile: true,
+        });
+      }
+      function drawImage() {
+        for (let x = 0; x < img.width; x++) {
+          for (let y = 0; y < img.height; y++) {
+            let v = noise.get(x / img.width, y / img.height);
+            let c = map(v, -1, 1, 0, 255);
+            img.fill(c);
+            img.rect(x, y, 1, 1);
+          }
+        }
+      }
+
+      function draw() {
+        background(0);
+
+        counter += deltaTime / 10;
+
+        // draw the graphics object to the canvas
+        for (let x = -counter % img.width; x < width; x += img.width) {
+          for (let y = -counter % img.height; y < height; y += img.height) {
+            image(img, x, y, img.width + 0.5, img.height + 0.5);
+          }
+        }
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth - 2, windowHeight - 2);
+      }
+    </script>
+  </body>
+</html>

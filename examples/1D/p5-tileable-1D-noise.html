@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"
+      integrity="sha512-WoO4Ih0CDOSLYafy22wZD/mcJ7k0ESLqtQsFa6zFKnEUrbtuGU+GkLtVhgt93xa2qewG5gKEC6CWlN8OaCTSVg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- for dev -->
+    <!-- <script src="../uber-noise.js"></script> -->
+
+    <!-- for production -->
+    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+    <meta charset="utf-8" />
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body style="background: black">
+    <script>
+      var noise,
+        counter = 0,
+        values;
+
+      var settings = {
+        scale: 0.2,
+        steps: 0,
+        update: true,
+        octaves: 3,
+        gain: 0.5,
+        lacunarity: 2,
+        speed: 0.2,
+      };
+
+      function setup() {
+        createCanvas(windowWidth - 2, windowHeight - 2);
+        stroke(255);
+
+        createNoise();
+        calculateValues();
+
+        gui = new dat.GUI();
+        gui.add(settings, "scale", 0.01, 10).onChange(function (value) {
+          noise.scale = value;
+          calculateValues();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "steps", 0, 30, 1).onChange(function (value) {
+          noise.steps = value;
+          calculateValues();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "octaves", 0, 10, 1).onChange(function (value) {
+          createNoise();
+          calculateValues();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "gain", 0.01, 5).onChange(function (value) {
+          noise.gain = value;
+          calculateValues();
+          if (!settings.update) draw();
+        });
+        gui.add(settings, "lacunarity", 0.01, 5).onChange(function (value) {
+          noise.lacunarity = value;
+          calculateValues();
+          if (!settings.update) draw();
+        });
+
+        gui.add(settings, "speed", 0.05, 1);
+
+        gui.add(settings, "update").onChange(function (value) {
+          if (value) {
+            loop();
+          } else {
+            noLoop();
+          }
+        });
+      }
+
+      function createNoise() {
+        noise = new UberNoise({
+          scale: settings.scale,
+          octaves: settings.octaves,
+          gain: settings.gain,
+          lacunarity: settings.lacunarity,
+          tileX: true,
+        });
+      }
+      function calculateValues() {
+        values = [];
+        // put 2000 values in the array (we'll use this to draw a line)
+        let resolution = 2000;
+        for (let x = 0; x < resolution; x++) {
+          let v = noise.get((x / resolution) * 10);
+          values.push(v);
+        }
+      }
+
+      function draw() {
+        background(0);
+
+        let lastY;
+        counter += deltaTime * settings.speed;
+        // draw line from the values array
+        for (let i = 0; i < values.length; i++) {
+          // move the index around to create a looping effect
+          let index = Math.floor(i + counter) % values.length;
+          let v = values[index];
+          let y = map(v, -1, 1, 0, height);
+
+          if (lastY)
+            line(
+              (width / values.length) * (i - 1),
+              lastY,
+              (width / values.length) * i,
+              y
+            );
+          lastY = y;
+        }
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth - 2, windowHeight - 2);
+      }
+    </script>
+  </body>
+</html>

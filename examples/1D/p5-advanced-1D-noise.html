@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"
+      integrity="sha512-WoO4Ih0CDOSLYafy22wZD/mcJ7k0ESLqtQsFa6zFKnEUrbtuGU+GkLtVhgt93xa2qewG5gKEC6CWlN8OaCTSVg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <!-- for dev -->
+    <!-- <script src="../uber-noise.js"></script> -->
+
+    <!-- for production -->
+    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+
+    <meta charset="utf-8" />
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body style="background: black">
+    <script>
+      var noise;
+
+      var counter = 0;
+
+      async function setup() {
+        createCanvas(windowWidth - 2, windowHeight - 2);
+        stroke(255);
+
+        noise = new UberNoise({
+          scale: 0.001,
+          octaves: 4,
+          warp: { min: 1, max: 100, scale: 0.01 },
+          sharpness: { scale: 0.0005 },
+          power: { min: 0.5, max: 3, scale: 0.001 },
+
+          lacunarity: { min: 0.1, max: 0.8, scale: 0.0005 },
+          seed: 3,
+        });
+      }
+
+      function draw() {
+        if (noise == undefined) return;
+
+        background(0);
+        let stepSize = 0.5;
+        let lastY;
+        counter += deltaTime / 2;
+        for (let x = 0; x < width; x += stepSize) {
+          let v = noise.get(x + Math.floor(counter));
+          let y = map(v, -1, 1, height * 0.01, height * 0.99);
+          if (lastY) line(x, lastY, x + stepSize, y);
+          lastY = y;
+        }
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth - 2, windowHeight - 2);
+      }
+    </script>
+  </body>
+</html>

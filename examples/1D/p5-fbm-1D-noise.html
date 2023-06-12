@@ -8,12 +8,12 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
-
     <!-- for dev -->
-    <!-- <script src="./uber-noise.js"></script> -->
+    <!-- <script src="../uber-noise.js"></script> -->
 
     <!-- for production -->
-    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+
     <meta charset="utf-8" />
   </head>
   <style>
@@ -33,24 +33,47 @@
 
       var settings = {
         scale: 0.005,
+        octaves: 5,
+        gain: 0.5,
+        lacunarity: 2,
       };
-      async function setup() {
+
+      function setup() {
         createCanvas(windowWidth - 2, windowHeight - 2);
         stroke(255);
 
-        noise = new UberNoise({ scale: 0.005 });
+        createNoise();
 
         gui = new dat.GUI();
-        gui.add(settings, "scale", 0.0001, 0.05).onChange((value) => {
+        gui.add(settings, "scale", 0.0001, 0.02).onChange(function (value) {
           noise.scale = value;
+        });
+        gui.add(settings, "octaves", 0, 10, 1).onChange(function (value) {
+          createNoise();
+        });
+        gui.add(settings, "gain", 0.01, 5).onChange(function (value) {
+          noise.gain = value;
+        });
+        gui.add(settings, "lacunarity", 0.01, 5).onChange(function (value) {
+          noise.lacunarity = value;
+        });
+      }
+
+      function createNoise() {
+        noise = new UberNoise({
+          seed: 1,
+          scale: 0.005,
+          octaves: settings.octaves,
+          gain: settings.gain,
+          lacunarity: settings.lacunarity,
         });
       }
 
       function draw() {
         background(0);
 
-        let stepSize = 0.5,
-          lastY;
+        let stepSize = 0.5;
+        let lastY;
         counter += deltaTime / 10;
         for (let x = 0; x < width; x += stepSize) {
           let v = noise.get(x + counter);

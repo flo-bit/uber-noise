@@ -1,6 +1,6 @@
 {
   "name": "uber-noise",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. It is based on simplex-noise and alea.",
   "main": "dist/uber-noise.js",
   "module": "dist/uber-noise.module.js",
