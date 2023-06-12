@@ -3,29 +3,22 @@
   "version": "0.1.3",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. It is based on simplex-noise and alea.",
   "main": "dist/uber-noise.js",
-  "module": "dist/esm/uber-noise.js",
-  "types": "./dist/esm/uber-noise.d.ts",
-  "exports": {
-    "require": "./dist/cjs/uber-noise.js",
-    "import": "./dist/esm/uber-noise.js"
-  },
+  "module": "dist/uber-noise.module.js",
+  "browser": "dist/uber-noise.js",
+  "types": "./dist/uber-noise.d.ts",
   "files": [
-    "dist/esm/package.json",
-    "dist/esm/uber-noise.js",
-    "dist/esm/uber-noise.js.map",
-    "dist/esm/uber-noise.d.ts",
-    "dist/cjs/uber-noise.js",
-    "dist/cjs/uber-noise.js.map",
-    "dist/cjs/uber-noise.d.ts",
+    "dist/uber-noise.d.ts",
     "dist/uber-noise.js",
+    "dist/uber-noise.js.map",
+    "dist/uber-noise.module.js",
+    "dist/uber-noise.module.js.map",
     "uber-noise.ts"
   ],
   "scripts": {
-    "build": "mkdir -p dist && tsc --build tsconfig-commonjs.json && tsc --build tsconfig-esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json && webpack",
-    "start": "npm run build && node dist/uber-noise.js",
+    "build": "webpack",
     "test": "jest --coverage",
-    "start:dev": "nodemon --watch uber-noise.ts --exec \"npm run build\"",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "dev": "webpack serve --hot --open --config-name browser"
   },
   "keywords": [],
   "author": "",
@@ -39,10 +32,12 @@
     "nodemon": "^2.0.22",
     "path": "^0.12.7",
     "ts-jest": "^29.1.0",
+    "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.3",
     "webpack": "^5.86.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
     "alea": "^1.0.1",

@@ -1,6 +1,0 @@
-{
-    "watch": ["uber-noise.ts"],
-    "ext": ".ts,.js",
-    "ignore": [],
-    "exec": "npx ts-node uber-noise.ts"
-  }
