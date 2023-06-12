@@ -2,7 +2,7 @@
 
 advanced noise generation for the browser and node.js
 
-Work in progress.
+> :warning: ** Work in progress. Expect breaking changes! **
 
 ## Install
 
@@ -25,7 +25,7 @@ import UberNoise from "uber-noise";
 add script tag to your html and use the global class variable `UberNoise`
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.6"></script>
 ```
 
 ```javascript
@@ -80,7 +80,7 @@ const noise = new UberNoise({
 [see it live here](https://flo-bit.github.io/uber-noise/examples/p5-simple-1D-noise.html)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.6"></script>
 ```
 
 ```javascript

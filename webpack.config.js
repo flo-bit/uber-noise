@@ -2,7 +2,7 @@
 const path = require("path");
 
 const config = {
-  mode: "development",
+  mode: "production",
   devtool: "source-map",
   entry: "./uber-noise.ts",
   module: {
@@ -22,6 +22,7 @@ const config = {
 const esmConfig = {
   ...config,
   output: {
+    globalObject: "this",
     filename: "uber-noise.module.js",
 
     // eslint-disable-next-line no-undef
@@ -36,6 +37,7 @@ const esmConfig = {
 const umdConfig = {
   ...config,
   output: {
+    globalObject: "this",
     filename: "uber-noise.js",
 
     // eslint-disable-next-line no-undef
