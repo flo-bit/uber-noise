@@ -2,7 +2,7 @@
 
 advanced noise generation for the browser and node.js
 
-> :warning: ** Work in progress. Expect breaking changes! **
+> :warning: **Work in progress. Expect breaking changes!**
 
 ## Install
 
