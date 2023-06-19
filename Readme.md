@@ -25,7 +25,7 @@ import UberNoise from "uber-noise";
 add script tag to your html and use the global class variable `UberNoise`
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.8"></script>
 ```
 
 ```javascript
@@ -80,7 +80,7 @@ const noise = new UberNoise({
 [see it live here](https://flo-bit.github.io/uber-noise/examples/1D/p5-simple-1D-noise.html)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.8"></script>
 ```
 
 ```javascript
