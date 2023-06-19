@@ -1,0 +1,215 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.148.0/three.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"
+      integrity="sha512-WoO4Ih0CDOSLYafy22wZD/mcJ7k0ESLqtQsFa6zFKnEUrbtuGU+GkLtVhgt93xa2qewG5gKEC6CWlN8OaCTSVg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <!-- for dev -->
+    <!-- <script src="../uber-noise.js"></script> -->
+
+    <!-- for production -->
+    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+  </head>
+
+  <body style="overflow: hidden; background-color: rgb(0, 0, 0)">
+    <script type="module">
+      var renderer,
+        scene,
+        camera,
+        clock,
+        lights = {},
+        keys = {},
+        plane,
+        oceanPlane,
+        gui;
+
+      var settings = {
+        widthSubdivisions: 100,
+        heightSubdivisions: 70,
+        scale: 0.35,
+        octaves: 7,
+        pow: 2,
+        warp: 0.7,
+        erosion: 1,
+        steps: 0,
+        update: makePlane,
+        rotation: -1,
+        oceanHeight: 0.2,
+      };
+      function setupScene() {
+        renderer = new THREE.WebGLRenderer();
+        clock = new THREE.Clock();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        let d = renderer.domElement;
+        d.style.position = "absolute";
+        d.style.left = "0px";
+        d.style.top = "0px";
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          150
+        );
+
+        scene.add(camera);
+
+        let background = 0x232323;
+        scene.background = new THREE.Color(background);
+
+        document.addEventListener(
+          "keydown",
+          (event) => (keys[event.key] = true),
+          false
+        );
+        document.addEventListener(
+          "keyup",
+          (event) => (keys[event.key] = false),
+          false
+        );
+        window.addEventListener("resize", onWindowResize, false);
+
+        lights.ambi = new THREE.AmbientLight(0xffffff, 0.2); // soft white light
+        scene.add(lights.ambi);
+
+        lights.dir = new THREE.DirectionalLight(0xffffff, 1.0);
+        lights.dir.position.set(-0.8, 0.5, 0.7);
+        scene.add(lights.dir);
+
+        makePlane();
+        makeGUI();
+      }
+
+      function makeGUI() {
+        gui = new dat.GUI();
+        gui.add(settings, "scale", 0.01, 1);
+        gui.add(settings, "octaves", 0, 10, 1);
+        gui.add(settings, "pow", 0, 4, 0.1);
+        gui.add(settings, "warp", 0, 4, 0.1);
+        gui.add(settings, "steps", 0, 500, 1);
+        gui.add(settings, "erosion", 0, 1, 0.01);
+        gui.add(settings, "widthSubdivisions", 1, 1000, 1);
+        gui.add(settings, "heightSubdivisions", 1, 1000, 1);
+        gui.add(settings, "rotation", -1, 1).onChange(() => {
+          plane.rotation.x = settings.rotation;
+        });
+        gui.add(settings, "oceanHeight", 0, 1).onChange(() => {
+          oceanPlane.position.z = settings.oceanHeight;
+        });
+        gui.add(settings, "update");
+      }
+
+      function makeOceanPlane() {
+        let geo = new THREE.PlaneGeometry(6, 4);
+        let mat = new THREE.MeshStandardMaterial({
+          color: 0xaaaaaa,
+          flatShading: true,
+          transparent: true,
+          opacity: 0.7,
+        });
+        oceanPlane = new THREE.Mesh(geo, mat);
+        oceanPlane.position.z = settings.oceanHeight;
+        plane.add(oceanPlane);
+      }
+
+      function makePlane() {
+        if (plane) {
+          scene.remove(plane);
+        }
+        let geo = new THREE.PlaneGeometry(
+          6,
+          4,
+          settings.widthSubdivisions,
+          settings.heightSubdivisions
+        );
+
+        let points = geo.getAttribute("position").array;
+        let colorData = new Float32Array(points.length);
+        let positionData = new Float32Array(points.length);
+
+        let noise = new UberNoise({
+          seed: 1,
+          erosion: settings.erosion,
+          scale: settings.scale,
+          octaves: settings.octaves,
+          min: 0,
+          max: 1,
+          warp: settings.warp,
+          power: settings.pow,
+          steps: settings.steps,
+        });
+
+        for (let i = 0; i < points.length; i += 3) {
+          let pos = new THREE.Vector3(points[i], points[i + 1], points[i + 2]);
+          let v = noise.get(pos);
+
+          positionData[i] = pos.x;
+          positionData[i + 1] = pos.y;
+          positionData[i + 2] = v; //pos.z;
+
+          colorData[i] =
+            colorData[i + 1] =
+            colorData[i + 2] =
+              (noise.toNormalized(v) + 1) / 2;
+        }
+        geo.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positionData, 3)
+        );
+
+        geo.setAttribute("color", new THREE.BufferAttribute(colorData, 3));
+
+        let mat = new THREE.MeshStandardMaterial({
+          flatShading: true,
+          vertexColors: true,
+        });
+        plane = new THREE.Mesh(geo, mat);
+
+        plane.rotation.x = settings.rotation;
+        plane.position.z = -4.5;
+        scene.add(plane);
+
+        makeOceanPlane();
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function render() {
+        renderer.render(scene, camera);
+      }
+
+      function animate(now) {
+        requestAnimationFrame(animate);
+
+        let delta = clock.getDelta();
+        let total = clock.getElapsedTime();
+        // game logic here
+
+        //plane.rotation.z += delta * 0.2;
+        render();
+      }
+
+      setupScene();
+      animate();
+    </script>
+  </body>
+</html>
