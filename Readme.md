@@ -1,39 +1,19 @@
 ## uber-noise
 
-Test
-
 advanced noise generation for the browser and node.js
 
 > :warning: **Work in progress. Expect breaking changes!**
 
 ## Install
 
-### Node.js
-
-add uber-noise to your project and import/require it
+add uber-noise to your project and import it
 
 ```bash
 npm i uber-noise
 ```
 
 ```javascript
-const UberNoise = require("uber-noise");
-// OR
 import UberNoise from "uber-noise";
-```
-
-### Browser
-
-add script tag to your html and use the global class variable `UberNoise`
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.8"></script>
-```
-
-```javascript
-const noise = new UberNoise();
-
-const value = noise.get(x, y);
 ```
 
 ## Usage
