@@ -2,11 +2,7 @@
 
 advanced noise generation for the browser and node.js
 
-> :warning: **Work in progress. Expect breaking changes!**
-
 ## Install
-
-add uber-noise to your project and import it
 
 ```bash
 npm i uber-noise
@@ -51,29 +47,7 @@ const noise = new UberNoise({
 
 ```javascript
 const noise = new UberNoise({
-  scale: { min: 0.01, max: 0.1, scale: 0.01 }, // this will set the scale to a noise instance returning values between 0.01 and 0.1
+  // this will set the scale to a noise instance returning values between 0.01 and 0.1
+  scale: { min: 0.01, max: 0.1, scale: 0.01 },
 });
-```
-
-## Examples
-
-### simple 1D noise with p5.js
-
-[see it live here](https://flo-bit.github.io/uber-noise/examples/1D/p5-simple-1D-noise.html)
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.8"></script>
-```
-
-```javascript
-// creating noise in setup()
-noise = new UberNoise({ scale: 0.005 });
-```
-
-```javascript
-// using noise in draw()
-for (let x = 0; x < width; x += stepSize) {
-  let v = noise.get(x + counter);
-  // ... use v to draw something
-}
 ```

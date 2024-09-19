@@ -1,12 +1,13 @@
 import {
-  NoiseFunction2D,
-  NoiseFunction3D,
-  NoiseFunction4D,
+  type NoiseFunction2D,
+  type NoiseFunction3D,
+  type NoiseFunction4D,
   createNoise2D,
   createNoise3D,
   createNoise4D,
-} from "simplex-noise";
-import alea from "alea";
+} from 'simplex-noise';
+
+import alea from 'alea';
 
 /**
  *
@@ -48,75 +49,128 @@ function lerp(a: number, b: number, t: number): number {
   return (b - a) * t + a;
 }
 
-function setLength(vector: number[], length: number): number[] {
-  const oldLength = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0));
-  if (oldLength === 0) return vector;
-  const scale = length / oldLength;
-  return vector.map((v) => v * scale);
-}
-
-// angle between two 3D vectors
-function angleTo(a: number[], b: number[]): number {
-  const dot = a.reduce((sum, v, i) => sum + v * b[i], 0);
-  const length = Math.sqrt(
-    a.reduce((sum, v) => sum + v * v, 0) * b.reduce((sum, v) => sum + v * v, 0)
-  );
-  return Math.acos(dot / length);
-}
-
-type ErosionUpFunction = (derivative: number[]) => number[];
-
-type VectorObject = {
+type VectorLikeObject = {
   x: number;
   y: number;
-  z: number | undefined;
-  w: number | undefined;
+  z?: number;
+  w?: number;
 };
 
 type NoiseParameterInput = number | UberNoise | NoiseOptions;
 type NoiseParameter = number | UberNoise;
 
 type NoiseOptions = {
+  /**
+   * seed for the noise, if not provided, Math.random() will be used,
+   */
   seed?: string | number;
 
+  /**
+   * minimun value of noise
+   */
   min?: NoiseParameterInput;
+
+  /**
+   * maximum value of noise
+   */
   max?: NoiseParameterInput;
 
+  /**
+   * scale of the noise ("zoom" in or out)
+   */
   scale?: NoiseParameterInput;
+
+  /**
+   * power of the noise (1 = linear, 2 = quadratic, etc)
+   */
   power?: NoiseParameterInput;
 
+  /**
+   * move noise in 2D, 3D or 4D space
+   */
   shift?: number[];
 
+  /**
+   * number of layers for fbm noise
+   */
   octaves?: number;
+  /**
+   * how much to multiply amplitude per fbm layer
+   */
   gain?: NoiseParameterInput;
+  /**
+   * how much to multiply scale per fbm layer
+   */
   lacunarity?: NoiseParameterInput;
 
+  /**
+   * array of amplitudes for each fbm layer
+   */
   amps?: number[];
 
+  /**
+   * custom noise options for each fbm layer
+   */
   layers?: NoiseOptions[];
 
-  erosion?: NoiseParameterInput;
-  erosionUp?: ErosionUpFunction;
-
+  /**
+   * billowed or rigded noise (0 = normal, 1 = billowed, -1 = ridged)
+   */
   sharpness?: NoiseParameterInput;
+  /**
+   * will turn noise into discrete steps (integer, number of steps)
+   */
   steps?: NoiseParameterInput;
+
+  /**
+   * how much to warp the noise
+   */
   warp?: NoiseParameterInput;
+  /**
+   * custom noise to warp the noise with
+   */
   warpNoise?: UberNoise;
+  /**
+   * second warp, can only be used if warp is used
+   * too
+   */
   warp2?: NoiseParameterInput;
+  /**
+   * second warp noise
+   */
   warpNoise2?: UberNoise;
 
+  /**
+   * should the noise be inverted
+   */
   invert?: boolean;
+  /**
+   * should we take the absolute value of the noise
+   */
   abs?: boolean;
+  /**
+   * should we clamp the noise between min and max
+   */
   clamp?: boolean;
+
+  /**
+   * tile the noise in x direction
+   */
   tileX?: boolean;
+  /**
+   * tile the noise in y direction
+   */
   tileY?: boolean;
+  /**
+   * tile the noise in all directions (will override tileX and tileY)
+   */
   tile?: boolean;
 };
 
 export default class UberNoise {
-  private noise2D: NoiseFunction2D | undefined;
-  private noise3D: NoiseFunction3D | undefined;
-  private noise4D: NoiseFunction4D | undefined;
+  private noise2D?: NoiseFunction2D;
+  private noise3D?: NoiseFunction3D;
+  private noise4D?: NoiseFunction4D;
   private seed: string | number;
 
   private _min: NoiseParameter = -1;
@@ -125,7 +179,10 @@ export default class UberNoise {
   private _scale: NoiseParameter = 1;
   private _power: NoiseParameter = 1;
 
-  private shift: number[] = [];
+  private shift: VectorLikeObject = {
+    x: 0,
+    y: 0,
+  };
 
   private octaves = 0;
   private _gain: NoiseParameter = 0.5;
@@ -138,27 +195,24 @@ export default class UberNoise {
   private _steps: NoiseParameter = 0;
 
   private _warp: NoiseParameter = 0;
-  private _warpNoise: UberNoise | undefined;
+  private _warpNoise?: UberNoise;
   private _warp2: NoiseParameter = 0;
-  private _warpNoise2: UberNoise | undefined;
+  private _warpNoise2?: UberNoise;
 
   private tileX = false;
   private tileY = false;
 
-  private erosionDelta = 0;
-  private erosionDerivative?: number[] = undefined;
-  private erosionUp?: ErosionUpFunction;
-
-  private static erosionDefaultUp = [0, 0, 1];
-
-  private position = [0, 0];
+  private position: VectorLikeObject = {
+    x: 0,
+    y: 0,
+  };
 
   private pngr;
 
   private layers: UberNoise[] = [];
 
   constructor(options: NoiseOptions = {}) {
-    this.seed = options.seed || Math.random();
+    this.seed = options.seed ?? Math.random();
     this.pngr = alea(this.seed);
 
     this.min = options.min ?? -1;
@@ -171,7 +225,6 @@ export default class UberNoise {
     this.gain = options.gain ?? 0.5;
     this.lacunarity = options.lacunarity ?? 2;
 
-    this.erosion = options.erosion ?? 0;
     this.sharpness = options.sharpness ?? 0;
     this.steps = options.steps ?? 0;
 
@@ -182,24 +235,29 @@ export default class UberNoise {
 
     this.amps = options.amps ?? [];
 
+    this.tileX = options.tileX ?? options.tile ?? false;
+    this.tileY = options.tileY ?? options.tile ?? false;
+
+    this.createLayers(options);
+  }
+
+  private createLayers(options: NoiseOptions) {
     // process layers
     for (let i = 0; i < this.octaves; i++) {
       const layerOptions = options.layers?.[i] ?? {};
       if (layerOptions instanceof UberNoise) {
         this.layers[i] = layerOptions;
-      } else {
-        if (layerOptions.seed === undefined) layerOptions.seed = this.pngr();
-        this.layers[i] = new UberNoise(layerOptions);
+        continue;
       }
+
+      if (layerOptions.seed === undefined) layerOptions.seed = this.pngr();
+      this.layers[i] = new UberNoise(layerOptions);
     }
     if (this.layers.length == 0) {
       this.noise2D = createNoise2D(this.pngr);
       this.noise3D = createNoise3D(this.pngr);
       this.noise4D = createNoise4D(this.pngr);
     }
-
-    this.tileX = options.tileX ?? options.tile ?? false;
-    this.tileY = options.tileY ?? options.tile ?? false;
   }
 
   private warpPosition(warp: number, warpNoise: UberNoise | undefined) {
@@ -207,30 +265,35 @@ export default class UberNoise {
 
     if (warpNoise != undefined) warpNoise.position = this.position;
 
-    let x = this.position[0],
-      y = this.position[1],
-      z = this.position[2],
-      w = this.position[3];
+    let x = this.position.x,
+      y = this.position.y,
+      z = this.position.z,
+      w = this.position.w;
 
     const noise = warpNoise ?? this;
     const scl = this.scale;
 
-    this.position = [x + 54.47 * scl, y + 34.98 * scl];
-    if (z != undefined) this.position.push(z + 21.63 * scl);
-    if (w != undefined) this.position.push(w + 67.1 * scl);
+    // move some amount so that we don't sample the same point as the original noise
+    this.position.x = x + 54.47 * scl;
+    this.position.y = y - 34.98 * scl;
+    if (z != undefined) this.position.z = z + 21.63 * scl;
+    if (w != undefined) this.position.w = w - 67.1 * scl;
 
     x += noise.getFBM() * warp;
     y += noise.getFBM() * warp;
     if (z != undefined) z += noise.getFBM() * warp;
     if (w != undefined) w += noise.getFBM() * warp;
 
-    this.position = [x, y, z, w];
+    this.position.x = x;
+    this.position.y = y;
+    this.position.z = z;
+    this.position.w = w;
   }
 
   private tilePosition() {
     if (!this.tileX && !this.tileY) return;
-    const x = this.position[0];
-    const y = this.position[1];
+    const x = this.position.x;
+    const y = this.position.y;
     let newX = 0,
       newY = 0,
       newZ = 0,
@@ -244,41 +307,24 @@ export default class UberNoise {
       newW = Math.cos(y * Math.PI * 2);
     }
     if (this.tileX && !this.tileY) {
-      this.position = [newX, newY + y];
+      this.position.x = newX;
+      this.position.y = newY + y;
     } else if (this.tileY && !this.tileX) {
-      this.position = [newZ + x, newW];
+      this.position.x = newZ + x;
+      this.position.y = newW;
     } else if (this.tileX && this.tileY) {
-      this.position = [newX, newY, newZ, newW];
+      this.position.x = newX;
+      this.position.y = newY;
+      this.position.z = newZ;
+      this.position.w = newW;
     }
   }
 
-  private getDerivative(
-    x: number,
-    y: number,
-    z: number,
-    n: number | undefined = undefined
-  ): number[] | undefined {
-    // left side or central difference
-    // very expensive (four/six noise calls), should be changed to analytical derivatives
-    // see https://iquilezles.org/www/articles/morenoise/morenoise.htm
-
-    if (z == undefined) return undefined;
-
-    const mov = this.erosionDelta;
-
-    const dx = (n ?? this.get(x - mov, y, z)) - this.get(x + mov, y, z);
-    const dy = (n ?? this.get(x, y - mov, z)) - this.get(x, y + mov, z);
-    const dz = (n ?? this.get(x, y, z - mov)) - this.get(x, y, z + mov);
-
-    this.erosionDerivative = [dx, dy, dz];
-    return this.erosionDerivative;
-  }
-
-  private getFBM(useErosion = false): number {
-    const x = this.position[0],
-      y = this.position[1],
-      z = this.position[2],
-      w = this.position[3];
+  private getFBM(): number {
+    const x = this.position.x,
+      y = this.position.y,
+      z = this.position.z,
+      w = this.position.w;
 
     const scale = this.scale;
 
@@ -302,14 +348,6 @@ export default class UberNoise {
     const lacunarity = this.lacunarity;
     const gain = this.gain;
 
-    useErosion = false;
-    const erosion = useErosion ? this.erosion : 0;
-    const up =
-      this.erosionUp != undefined
-        ? this.erosionUp(this.position)
-        : UberNoise.erosionDefaultUp;
-    const sum = [0, 0, 0];
-
     let n = 0;
 
     for (let i = 0; i < this.octaves; i++) {
@@ -322,26 +360,11 @@ export default class UberNoise {
           x * freq,
           y * freq,
           z != undefined ? z * freq : undefined,
-          w != undefined ? w * freq : undefined
+          w != undefined ? w * freq : undefined,
         ) *
         amp *
         layerAmp;
-      if (erosion > 0) {
-        const derivative = layer.getDerivative(x * freq, y * freq, z * freq);
-
-        if (derivative != undefined) {
-          setLength(derivative, amp * layerAmp);
-          sum[0] += derivative[0];
-          sum[1] += derivative[1];
-          sum[2] += derivative[2];
-
-          const mult = Math.abs(1 - angleTo(up, sum) / Math.PI);
-
-          n += value * (mult * erosion + 1 - erosion);
-        }
-      } else {
-        n += value;
-      }
+      n += value;
 
       amp *= gain;
       freq *= lacunarity;
@@ -350,47 +373,26 @@ export default class UberNoise {
     return n / maxAmp;
   }
 
-  private getNoise(
-    x: number,
-    y: number,
-    z: number | undefined = undefined,
-    w: number | undefined = undefined
-  ): number {
-    // set position
-    this.position[0] = x;
-    this.position[1] = y;
-    if (z !== undefined) {
-      this.position[2] = z;
-    }
-    if (w !== undefined) {
-      this.position[3] = w;
-    }
-
-    // apply shift
+  private applyShift() {
     const shift = this.shift;
     if (shift !== undefined) {
-      for (let i = 0; i < this.position.length && i < shift.length; i++) {
-        this.position[i] += shift[i];
-      }
+      this.position.x += shift.x;
+      this.position.y += shift.y;
+      if (this.position.z) this.position.z += shift.z ?? 0;
+      if (this.position.w) this.position.w += shift.w ?? 0;
     }
+  }
 
-    // apply tiling
-    this.tilePosition();
-
-    // apply warp
-    this.warpPosition(this.warp, this.warpNoise);
-    this.warpPosition(this.warp2, this.warpNoise2);
-
-    let norm = this.getFBM(true);
-
-    // apply power
+  private applyPower(norm: number) {
     const power = this.power;
     if (power != 1) {
       // convert to [0 - 1], apply power and back to [-1, 1]
       norm = (Math.pow((norm + 1) * 0.5, power) - 0.5) * 2;
     }
+    return norm;
+  }
 
-    // apply sharpness
+  private applySharpness(norm: number) {
     const sharpness = this.sharpness;
     if (sharpness != 0) {
       const billow = (Math.abs(norm) - 0.5) * 2;
@@ -399,8 +401,10 @@ export default class UberNoise {
       norm = lerp(norm, billow, Math.max(0, sharpness));
       norm = lerp(norm, ridged, Math.max(0, -sharpness));
     }
+    return norm;
+  }
 
-    // apply steps
+  private applySteps(norm: number) {
     const steps = this.steps;
     if (steps != 0) {
       // convert from -1 to 1 to 0 to 1
@@ -410,27 +414,62 @@ export default class UberNoise {
       // convert back to -1 to 1
       norm = norm * 2 - 1;
     }
+    return norm;
+  }
+
+  private getNoise(
+    x: number,
+    y: number,
+    z: number | undefined = undefined,
+    w: number | undefined = undefined,
+  ): number {
+    // set position
+    this.position.x = x;
+    this.position.y = y;
+    this.position.z = z;
+    this.position.w = w;
+
+    // apply shift
+    this.applyShift();
+
+    // apply tiling
+    this.tilePosition();
+
+    // apply warp
+    this.warpPosition(this.warp, this.warpNoise);
+    this.warpPosition(this.warp2, this.warpNoise2);
+
+    let norm = this.getFBM();
+
+    // apply power
+    norm = this.applyPower(norm);
+
+    // apply sharpness
+    norm = this.applySharpness(norm);
+
+    // apply steps
+    norm = this.applySteps(norm);
 
     return norm;
   }
 
-  // same as get but returns between min and max
+  // same as normalized but returns between min and max
   get(
-    x: number | VectorObject | Array<number>,
+    x: number | VectorLikeObject | Array<number>,
     y: number | undefined = undefined,
     z: number | undefined = undefined,
-    w: number | undefined = undefined
+    w: number | undefined = undefined,
   ): number {
     const norm = this.normalized(x, y, z, w);
-    return this.toMinMax(norm);
+    return this.normalizedToMinMax(norm);
   }
 
   // same as get but returns between -1 and 1
   normalized(
-    x: number | VectorObject | Array<number>,
+    x: number | VectorLikeObject | Array<number>,
     y: number | undefined = undefined,
     z: number | undefined = undefined,
-    w: number | undefined = undefined
+    w: number | undefined = undefined,
   ): number {
     // if x is an array, treat it as a vector
     if (Array.isArray(x)) {
@@ -438,7 +477,7 @@ export default class UberNoise {
       z = x[2];
       y = x[1];
       x = x[0];
-    } else if (typeof x === "object") {
+    } else if (typeof x === 'object') {
       w = x.w;
       z = x.z;
       y = x.y;
@@ -451,27 +490,48 @@ export default class UberNoise {
   }
 
   /**
-   * value between min and max to normalized value between -1 and 1
+   * convert value between min and max to normalized value between -1 and 1
    *
    * @param value {number}
    * @returns {number}
    */
-  toNormalized(value: number): number {
+  minMaxToNormalized(value: number): number {
     return ((value - this.min) / (this.max - this.min)) * 2 - 1;
   }
 
   /**
-   * normlized value to value between min and max
+   * convert normlized value to value between min and max
    *
    * @param value {number}
    * @returns {number}
    */
-  toMinMax(value: number): number {
+  normalizedToMinMax(value: number): number {
     return (value + 1) * 0.5 * (this.max - this.min) + this.min;
   }
 
+  move(
+    x: number,
+    y: number,
+    z: number | undefined = undefined,
+    w: number | undefined = undefined,
+  ) {
+    if (!this.shift) {
+      this.shift = { x, y, z, w };
+      return;
+    }
+
+    this.shift.x += x;
+    this.shift.y += y;
+    if (z != undefined) {
+      this.shift.z = (this.shift.z ?? 0) + z;
+    }
+    if (w != undefined) {
+      this.shift.w = (this.shift.w ?? 0) + w;
+    }
+  }
+
   private checkParameterInput(value: NoiseParameterInput): UberNoise | number {
-    if (typeof value === "object" && !(value instanceof UberNoise)) {
+    if (typeof value === 'object' && !(value instanceof UberNoise)) {
       if (value.seed === undefined) {
         value.seed = this.pngr();
       }
@@ -481,7 +541,7 @@ export default class UberNoise {
   }
 
   private getParameter(value: NoiseParameter): number {
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       return value;
     }
     return value.get(this.position);
@@ -594,8 +654,8 @@ export default class UberNoise {
 
 export {
   UberNoise,
-  NoiseOptions,
-  NoiseParameter,
-  NoiseParameterInput,
-  VectorObject,
+  type NoiseOptions,
+  type NoiseParameter,
+  type NoiseParameterInput,
+  type VectorLikeObject as VectorObject,
 };

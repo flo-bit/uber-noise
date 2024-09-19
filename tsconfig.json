@@ -1,17 +1,25 @@
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "target": "es2019",
-      "declaration": true,
-      "strict": true,
-      "outDir": "./dist/",
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
-    },
-    "exclude": [
-      "dist",
-      "tests"
-    ]
-  }
+  "compilerOptions": {
+    // Enable latest features
+    "lib": ["ESNext", "DOM"],
+    "target": "ESNext",
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    "rootDir": "src",
+    "outDir": "dist",
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
