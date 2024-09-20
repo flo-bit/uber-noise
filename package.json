@@ -1,7 +1,7 @@
 {
   "name": "uber-noise",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. based on simplex-noise",
   "scripts": {
     "build": "tsc",
