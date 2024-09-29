@@ -4,9 +4,9 @@
   "version": "0.2.1",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. based on simplex-noise",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmit && bun build ./src/uber-noise.ts --outdir ./dist --target browser --format esm --minify",
     "dev": "tsc -w",
-    "test": "bun test",
+    "test": "bun test --coverage",
     "measure": "bun run uber-noise.benchmark.ts"
   },
   "main": "./dist/uber-noise.js",
@@ -17,9 +17,24 @@
       "default": "./dist/uber-noise.js"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flo-bit/uber-noise.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flo-bit/uber-noise/issues"
+  },
+  "homepage": "https://github.com/flo-bit/uber-noise#readme",
+  "engines": {
+    "node": ">=14"
+  },
   "keywords": [
     "noise",
     "simplex"
+  ],
+  "files": [
+    "dist",
+    "src"
   ],
   "author": "flo-bit",
   "license": "MIT",

@@ -9,42 +9,6 @@ import {
 
 import alea from 'alea';
 
-/**
- *
- * @property {number} seed - seed for the noise, if not provided, Math.random() will be used,
- * currently same results can only be guaranteed for newly created noise objects with same seed
- * (as opposed to an old noise object where you changed the seed)
- *
- * @property {number} min - minimun value of noise
- * @property {number} max - maximum value of noise
- *
- * @property {number} scale - scale of the noise
- * @property {number} power - power of the noise (1 = linear, 2 = quadratic, etc)
- * @property {Vector} shift - move noise in 2D, 3D or 4D space
- *
- * @property {number} octaves - number of layers for fbm noise
- * @property {number} gain - how much to multiply amplitude per layer
- * @property {number} lacunarity - how much to multiply scale per layer
- * @property {array} amps - array of amplitudes for each layer
- * @property {number} erosion - how much previous layers influence amplitude of later layers
- * @property {number} sharpness - billowed or rigded noise (0 = normal, 1 = billowed, -1 = ridged)
- * @property {number} steps - will turn noise into steps (integer, number of steps)
- *
- * @property {number} warp - how much to warp the noise
- * @property {number} warpNoise - noise to warp the noise with
- * @property {number} warp2 - second warp, can only be used if warp is used too
- * @property {number} warpNoise2 - second warp noise
- *
- * @property {boolean} invert - invert the noise
- * @property {boolean} abs - absolute value of the noise
- * @property {boolean} clamp - clamp the noise between min and max
- * @property {boolean} tileX - tile the noise in x direction
- * @property {boolean} tileY - tile the noise in y direction
- * @property {boolean} tile - tile the noise in all directions (will override tileX and tileY)
- *
- * @constructor
- */
-
 function lerp(a: number, b: number, t: number): number {
   return (b - a) * t + a;
 }
@@ -56,113 +20,164 @@ type VectorLikeObject = {
   w?: number;
 };
 
-type NoiseParameterInput = number | UberNoise | NoiseOptions;
 type NoiseParameter = number | UberNoise;
 
 type NoiseOptions = {
   /**
    * seed for the noise, if not provided, Math.random() will be used,
+   *
+   * @default Math.random()
    */
   seed?: string | number;
 
   /**
    * minimun value of noise
+   *
+   * @default -1
    */
-  min?: NoiseParameterInput;
+  min?: number | UberNoise | NoiseOptions;
 
   /**
    * maximum value of noise
+   *
+   * @default 1
    */
-  max?: NoiseParameterInput;
+  max?: number | UberNoise | NoiseOptions;
 
   /**
    * scale of the noise ("zoom" in or out)
+   *
+   * @default 1
    */
-  scale?: NoiseParameterInput;
+  scale?: number | UberNoise | NoiseOptions;
 
   /**
    * power of the noise (1 = linear, 2 = quadratic, etc)
+   *
+   * @default 1
    */
-  power?: NoiseParameterInput;
+  power?: number | UberNoise | NoiseOptions;
 
   /**
    * move noise in 2D, 3D or 4D space
+   *
+   * @default [0, 0, 0, 0]
    */
   shift?: number[];
 
   /**
    * number of layers for fbm noise
+   *
+   * @default 0
    */
   octaves?: number;
+
   /**
    * how much to multiply amplitude per fbm layer
+   *
+   * @default 0.5
    */
-  gain?: NoiseParameterInput;
+  gain?: number | UberNoise | NoiseOptions;
+
   /**
    * how much to multiply scale per fbm layer
+   *
+   * @default 2
    */
-  lacunarity?: NoiseParameterInput;
+  lacunarity?: number | UberNoise | NoiseOptions;
 
   /**
    * array of amplitudes for each fbm layer
+   *
+   * @default []
    */
   amps?: number[];
 
   /**
    * custom noise options for each fbm layer
+   *
+   * @default []
    */
   layers?: NoiseOptions[];
 
   /**
    * billowed or rigded noise (0 = normal, 1 = billowed, -1 = ridged)
+   *
+   * @default 0
    */
-  sharpness?: NoiseParameterInput;
+  sharpness?: number | UberNoise | NoiseOptions;
+
   /**
    * will turn noise into discrete steps (integer, number of steps)
+   *
+   * @default 0
    */
-  steps?: NoiseParameterInput;
+  steps?: number | UberNoise | NoiseOptions;
 
   /**
    * how much to warp the noise
+   *
+   * @default 0
    */
-  warp?: NoiseParameterInput;
+  warp?: number | UberNoise | NoiseOptions;
+
   /**
    * custom noise to warp the noise with
+   *
+   * @default undefined
    */
   warpNoise?: UberNoise;
+
   /**
-   * second warp, can only be used if warp is used
-   * too
+   * second warp, can only be used if warp is used too
+   *
+   * @default 0
    */
-  warp2?: NoiseParameterInput;
+  warp2?: number | UberNoise | NoiseOptions;
   /**
    * second warp noise
+   *
+   * @default undefined
    */
   warpNoise2?: UberNoise;
 
   /**
    * should the noise be inverted
+   *
+   * @default false
    */
   invert?: boolean;
+
   /**
    * should we take the absolute value of the noise
+   *
+   * @default false
    */
   abs?: boolean;
+
   /**
    * should we clamp the noise between min and max
+   *
+   * @default false
    */
   clamp?: boolean;
 
   /**
    * tile the noise in x direction
+   *
+   * @default false
    */
   tileX?: boolean;
   /**
    * tile the noise in y direction
+   *
+   * @default false
    */
   tileY?: boolean;
   /**
    * tile the noise in all directions (will override tileX and tileY)
+   *
+   * @default false
    */
   tile?: boolean;
 };
@@ -190,7 +205,6 @@ export default class UberNoise {
 
   private amps: number[] = [];
 
-  private _erosion: NoiseParameter = 0;
   private _sharpness: NoiseParameter = 0;
   private _steps: NoiseParameter = 0;
 
@@ -453,7 +467,26 @@ export default class UberNoise {
     return norm;
   }
 
-  // same as normalized but returns between min and max
+  /**
+   * get noise value at position x, y, z, w
+   *
+   * all transformations will be applied to the noise (shift, warp, power, sharpness, steps, min, max, fmb, etc)
+   *
+   * either pass in
+   * - x, y, z, w as separate arguments
+   * - as first argument an object {x, y, z, w}
+   * - as first argument an array [x, y, z, w]
+   *
+   * if y is not provided, it will be set to 0
+   * if z is not provided, will use 2D noise
+   * if w is not provided, will use 3D noise
+   *
+   * @param x {number | VectorLikeObject | Array<number>}
+   * @param y {number | undefined}
+   * @param z {number | undefined}
+   * @param w {number | undefined}
+   * @returns {number}
+   */
   get(
     x: number | VectorLikeObject | Array<number>,
     y: number | undefined = undefined,
@@ -464,7 +497,27 @@ export default class UberNoise {
     return this.normalizedToMinMax(norm);
   }
 
-  // same as get but returns between -1 and 1
+  /**
+   * get normalized noise value at position x, y, z, w
+   *
+   * all transformations will be applied to the noise (shift, warp, power, sharpness, steps, fmb, etc)
+   * EXCEPT min and max, noise will be returned as a value between -1 and 1
+   *
+   * either pass in
+   * - x, y, z, w as separate arguments
+   * - as first argument an object {x, y, z, w}
+   * - as first argument an array [x, y, z, w]
+   *
+   * if y is not provided, it will be set to 0
+   * if z is not provided, will use 2D noise
+   * if w is not provided, will use 3D noise
+   *
+   * @param x {number | VectorLikeObject | Array<number>}
+   * @param y {number | undefined}
+   * @param z {number | undefined}
+   * @param w {number | undefined}
+   * @returns {number}
+   */
   normalized(
     x: number | VectorLikeObject | Array<number>,
     y: number | undefined = undefined,
@@ -509,6 +562,20 @@ export default class UberNoise {
     return (value + 1) * 0.5 * (this.max - this.min) + this.min;
   }
 
+  /**
+   *
+   * shift the noise in 2D, 3D or 4D space, will be added to the position
+   *
+   * if called multiple times, the shifts will be added
+   *
+   * returns the UberNoise object for chaining
+   *
+   * @param x {number}
+   * @param y {number}
+   * @param z {number | undefined}
+   * @param w {number | undefined}
+   * @returns {UberNoise}
+   */
   move(
     x: number,
     y: number,
@@ -528,9 +595,13 @@ export default class UberNoise {
     if (w != undefined) {
       this.shift.w = (this.shift.w ?? 0) + w;
     }
+
+    return this;
   }
 
-  private checkParameterInput(value: NoiseParameterInput): UberNoise | number {
+  private checkParameterInput(
+    value: number | UberNoise | NoiseOptions,
+  ): UberNoise | number {
     if (typeof value === 'object' && !(value instanceof UberNoise)) {
       if (value.seed === undefined) {
         value.seed = this.pngr();
@@ -551,13 +622,13 @@ export default class UberNoise {
   get min(): number {
     return this.getParameter(this._min);
   }
-  set min(value: NoiseParameterInput) {
+  set min(value: number | UberNoise | NoiseOptions) {
     this._min = this.checkParameterInput(value);
   }
   get max(): number {
     return this.getParameter(this._max);
   }
-  set max(value: NoiseParameterInput) {
+  set max(value: number | UberNoise | NoiseOptions) {
     this._max = this.checkParameterInput(value);
   }
 
@@ -565,13 +636,13 @@ export default class UberNoise {
   get scale(): number {
     return this.getParameter(this._scale);
   }
-  set scale(value: NoiseParameterInput) {
+  set scale(value: number | UberNoise | NoiseOptions) {
     this._scale = this.checkParameterInput(value);
   }
   get power(): number {
     return this.getParameter(this._power);
   }
-  set power(value: NoiseParameterInput) {
+  set power(value: number | UberNoise | NoiseOptions) {
     this._power = this.checkParameterInput(value);
   }
 
@@ -579,41 +650,33 @@ export default class UberNoise {
   get gain(): number {
     return this.getParameter(this._gain);
   }
-  set gain(value: NoiseParameterInput) {
+  set gain(value: number | UberNoise | NoiseOptions) {
     this._gain = this.checkParameterInput(value);
   }
   get lacunarity(): number {
     return this.getParameter(this._lacunarity);
   }
-  set lacunarity(value: NoiseParameterInput) {
+  set lacunarity(value: number | UberNoise | NoiseOptions) {
     this._lacunarity = this.checkParameterInput(value);
   }
 
-  // getter and setter for erosion, sharpness and steps
-  get erosion(): number {
-    return this.getParameter(this._erosion);
-  }
-  set erosion(value: NoiseParameterInput) {
-    this._erosion = this.checkParameterInput(value);
-  }
   get sharpness(): number {
     return this.getParameter(this._sharpness);
   }
-  set sharpness(value: NoiseParameterInput) {
+  set sharpness(value: number | UberNoise | NoiseOptions) {
     this._sharpness = this.checkParameterInput(value);
   }
   get steps(): number {
     return Math.round(this.getParameter(this._steps));
   }
-  set steps(value: NoiseParameterInput) {
+  set steps(value: number | UberNoise | NoiseOptions) {
     this._steps = this.checkParameterInput(value);
   }
 
-  // getter and setter for warp, warpNoise, warp2 and warpNoise2
   get warp(): number {
     return this.getParameter(this._warp);
   }
-  set warp(value: NoiseParameterInput) {
+  set warp(value: number | UberNoise | NoiseOptions) {
     this._warp = this.checkParameterInput(value);
   }
   get warpNoise(): UberNoise | undefined {
@@ -633,7 +696,7 @@ export default class UberNoise {
   get warp2(): number {
     return this.getParameter(this._warp2);
   }
-  set warp2(value: NoiseParameterInput) {
+  set warp2(value: number | UberNoise | NoiseOptions) {
     this._warp2 = this.checkParameterInput(value);
   }
   get warpNoise2(): UberNoise | undefined {
@@ -656,6 +719,5 @@ export {
   UberNoise,
   type NoiseOptions,
   type NoiseParameter,
-  type NoiseParameterInput,
   type VectorLikeObject as VectorObject,
 };
