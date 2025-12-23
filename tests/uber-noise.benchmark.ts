@@ -1,6 +1,10 @@
 import { run, bench, group, baseline } from 'mitata';
-import UberNoise from './src/uber-noise';
-import { createNoise2D, createNoise3D, createNoise4D } from 'simplex-noise';
+import { UberNoise } from '../src/uber-noise';
+import {
+  createNoise2D,
+  createNoise3D,
+  createNoise4D,
+} from '../src/simplex-noise/simplex-noise';
 
 const baseNoise2D = createNoise2D();
 const baseNoise3D = createNoise3D();

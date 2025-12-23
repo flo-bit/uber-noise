@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test';
-import UberNoise from './src/uber-noise';
+import { UberNoise } from '../src/uber-noise';
 
 test('Basic noise generation returns value within min and max', () => {
   const noise = new UberNoise({ seed: 12345 });

@@ -4,12 +4,14 @@
   "version": "0.2.2",
   "description": "uber-noise is a advanced noise library for 2D, 3D and 4D noise generation. based on simplex-noise",
   "scripts": {
-    "build": "tsc --noEmit && bun build ./src/uber-noise.ts --outdir ./dist --target browser --format esm --minify",
-    "dev": "tsc -w",
+    "build": "microbundle",
+    "dev": "microbundle watch",
     "test": "bun test --coverage",
     "measure": "bun run uber-noise.benchmark.ts"
   },
-  "main": "./dist/uber-noise.js",
+  "source": "src/uber-noise.ts",
+  "main": "./dist/uber-noise.cjs",
+  "unpkg": "./dist/uber-noise.umd.js",
   "types": "./src/uber-noise.ts",
   "exports": {
     ".": {
@@ -40,12 +42,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/bun": "^1.1.9",
+    "microbundle": "^0.15.1",
     "mitata": "^0.1.14",
     "prettier": "3.3.3",
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "alea": "^1.0.1",
-    "simplex-noise": "^4.0.3"
+    "alea": "^1.0.1"
   }
 }

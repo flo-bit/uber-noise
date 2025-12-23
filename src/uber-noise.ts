@@ -1,11 +1,11 @@
 import {
-  type NoiseFunction2D,
-  type NoiseFunction3D,
-  type NoiseFunction4D,
-  createNoise2D,
-  createNoise3D,
-  createNoise4D,
-} from 'simplex-noise';
+  type NoiseDerivFunction2D,
+  type NoiseDerivFunction3D,
+  type NoiseDerivFunction4D,
+  createNoise2DWithDerivatives as createNoise2D,
+  createNoise3DWithDerivatives as createNoise3D,
+  createNoise4DWithDerivatives as createNoise4D,
+} from './simplex-noise/simplex-noise';
 
 import alea from 'alea';
 
@@ -182,10 +182,10 @@ type NoiseOptions = {
   tile?: boolean;
 };
 
-export default class UberNoise {
-  private noise2D?: NoiseFunction2D;
-  private noise3D?: NoiseFunction3D;
-  private noise4D?: NoiseFunction4D;
+class UberNoise {
+  private noise2D?: NoiseDerivFunction2D;
+  private noise3D?: NoiseDerivFunction3D;
+  private noise4D?: NoiseDerivFunction4D;
   private seed: string | number;
 
   private _min: NoiseParameter = -1;
@@ -344,13 +344,13 @@ export default class UberNoise {
 
     if (this.layers.length == 0) {
       if (z != undefined && w != undefined && this.noise4D != undefined) {
-        return this.noise4D(x * scale, y * scale, z * scale, w * scale);
+        return this.noise4D(x * scale, y * scale, z * scale, w * scale).value;
       }
       if (z != undefined && this.noise3D != undefined) {
-        return this.noise3D(x * scale, y * scale, z * scale);
+        return this.noise3D(x * scale, y * scale, z * scale).value;
       }
       if (this.noise2D != undefined) {
-        return this.noise2D(x * scale, y * scale);
+        return this.noise2D(x * scale, y * scale).value;
       }
       return 0;
     }
@@ -720,4 +720,5 @@ export {
   type NoiseOptions,
   type NoiseParameter,
   type VectorLikeObject as VectorObject,
+  UberNoise as noise,
 };
