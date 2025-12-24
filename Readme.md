@@ -18,7 +18,7 @@ npm i uber-noise
 ```
 
 ```javascript
-import UberNoise from "uber-noise";
+import { UberNoise } from "uber-noise";
 ```
 
 ## Usage
