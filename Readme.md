@@ -13,6 +13,18 @@ advanced noise generation for the browser and node.js
 
 ## Install
 
+### Use in the browser
+
+Add the following to your html's file `<head>`
+
+```html
+<script
+  src="https://unpkg.com/uber-noise@0.3.0/dist/uber-noise.umd.js"
+></script>
+```
+
+### Install as npm package
+
 ```bash
 npm i uber-noise
 ```
