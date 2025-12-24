@@ -111,7 +111,10 @@ test('Test 3D terrain generation', () => {
       mesh.push(...verts);
     }
   }
-  const stl = meshToAsciiStl(mesh, 'two_triangles');
+  const stl = meshToAsciiStl(
+    mesh as [number, number, number][],
+    'two_triangles',
+  );
 
   // write stl string to file for manual inspection
   fs.writeFileSync('two_triangles.stl', stl);

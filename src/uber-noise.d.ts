@@ -1,3 +1,4 @@
+import { aleaFactory } from './alea/alea';
 type VectorLikeObject = {
     x: number;
     y: number;
@@ -144,6 +145,12 @@ type NoiseOptions = {
      * @default false
      */
     tile?: boolean;
+    /**
+     * generate noise with derivatives
+     *
+     * @default false
+     */
+    withDerivatives?: boolean;
 };
 declare class UberNoise {
     private noise2D?;
@@ -174,6 +181,7 @@ declare class UberNoise {
     private createLayers;
     private warpPosition;
     private tilePosition;
+    private getNoiseValue;
     private getFBM;
     private applyShift;
     private applyPower;
@@ -279,4 +287,8 @@ declare class UberNoise {
     get warpNoise2(): UberNoise | undefined;
     set warpNoise2(value: UberNoise | NoiseOptions | undefined);
 }
-export { UberNoise, type NoiseOptions, type NoiseParameter, type VectorLikeObject as VectorObject, UberNoise as noise, };
+declare global {
+    var UberNoise: typeof import('./uber-noise').UberNoise;
+    var alea: typeof import('./alea/alea').aleaFactory;
+}
+export { UberNoise, type NoiseOptions, type NoiseParameter, type VectorLikeObject as VectorObject, UberNoise as noise, aleaFactory as alea, };

@@ -2,12 +2,18 @@ import {
   type NoiseDerivFunction2D,
   type NoiseDerivFunction3D,
   type NoiseDerivFunction4D,
-  createNoise2DWithDerivatives as createNoise2D,
-  createNoise3DWithDerivatives as createNoise3D,
-  createNoise4DWithDerivatives as createNoise4D,
+  NoiseFunction2D,
+  NoiseFunction3D,
+  NoiseFunction4D,
+  createNoise2DWithDerivatives,
+  createNoise3DWithDerivatives,
+  createNoise4DWithDerivatives,
+  createNoise2D,
+  createNoise3D,
+  createNoise4D,
 } from './simplex-noise/simplex-noise';
 
-import alea from 'alea';
+import { aleaFactory } from './alea/alea';
 
 function lerp(a: number, b: number, t: number): number {
   return (b - a) * t + a;
@@ -180,12 +186,19 @@ type NoiseOptions = {
    * @default false
    */
   tile?: boolean;
+
+  /**
+   * generate noise with derivatives
+   *
+   * @default false
+   */
+  withDerivatives?: boolean;
 };
 
 class UberNoise {
-  private noise2D?: NoiseDerivFunction2D;
-  private noise3D?: NoiseDerivFunction3D;
-  private noise4D?: NoiseDerivFunction4D;
+  private noise2D?: NoiseDerivFunction2D | NoiseFunction2D;
+  private noise3D?: NoiseDerivFunction3D | NoiseFunction3D;
+  private noise4D?: NoiseDerivFunction4D | NoiseFunction4D;
   private seed: string | number;
 
   private _min: NoiseParameter = -1;
@@ -227,7 +240,7 @@ class UberNoise {
 
   constructor(options: NoiseOptions = {}) {
     this.seed = options.seed ?? Math.random();
-    this.pngr = alea(this.seed);
+    this.pngr = aleaFactory(this.seed).random;
 
     this.min = options.min ?? -1;
     this.max = options.max ?? 1;
@@ -268,9 +281,15 @@ class UberNoise {
       this.layers[i] = new UberNoise(layerOptions);
     }
     if (this.layers.length == 0) {
-      this.noise2D = createNoise2D(this.pngr);
-      this.noise3D = createNoise3D(this.pngr);
-      this.noise4D = createNoise4D(this.pngr);
+      if (options.withDerivatives) {
+        this.noise2D = createNoise2DWithDerivatives(this.pngr);
+        this.noise3D = createNoise3DWithDerivatives(this.pngr);
+        this.noise4D = createNoise4DWithDerivatives(this.pngr);
+      } else {
+        this.noise2D = createNoise2D(this.pngr);
+        this.noise3D = createNoise3D(this.pngr);
+        this.noise4D = createNoise4D(this.pngr);
+      }
     }
   }
 
@@ -334,6 +353,26 @@ class UberNoise {
     }
   }
 
+  private getNoiseValue(
+    dimension: 2 | 3 | 4,
+    x: number,
+    y: number,
+    z?: number,
+    w?: number,
+  ): number {
+    if (dimension === 2 && this.noise2D != undefined) {
+      const result = this.noise2D(x, y);
+      return typeof result === 'number' ? result : result.value;
+    } else if (dimension === 3 && this.noise3D != undefined) {
+      const result = this.noise3D(x, y, z!);
+      return typeof result === 'number' ? result : result.value;
+    } else if (dimension === 4 && this.noise4D != undefined) {
+      const result = this.noise4D(x, y, z!, w!);
+      return typeof result === 'number' ? result : result.value;
+    }
+    return 0;
+  }
+
   private getFBM(): number {
     const x = this.position.x,
       y = this.position.y,
@@ -344,13 +383,19 @@ class UberNoise {
 
     if (this.layers.length == 0) {
       if (z != undefined && w != undefined && this.noise4D != undefined) {
-        return this.noise4D(x * scale, y * scale, z * scale, w * scale).value;
+        return this.getNoiseValue(
+          4,
+          x * scale,
+          y * scale,
+          z * scale,
+          w * scale,
+        );
       }
       if (z != undefined && this.noise3D != undefined) {
-        return this.noise3D(x * scale, y * scale, z * scale).value;
+        return this.getNoiseValue(3, x * scale, y * scale, z * scale);
       }
       if (this.noise2D != undefined) {
-        return this.noise2D(x * scale, y * scale).value;
+        return this.getNoiseValue(2, x * scale, y * scale);
       }
       return 0;
     }
@@ -715,10 +760,21 @@ class UberNoise {
   }
 }
 
+if (!globalThis.UberNoise) {
+  globalThis.UberNoise = UberNoise;
+  globalThis.alea = aleaFactory;
+}
+
+declare global {
+  var UberNoise: typeof import('./uber-noise').UberNoise;
+  var alea: typeof import('./alea/alea').aleaFactory;
+}
+
 export {
   UberNoise,
   type NoiseOptions,
   type NoiseParameter,
   type VectorLikeObject as VectorObject,
   UberNoise as noise,
+  aleaFactory as alea,
 };
