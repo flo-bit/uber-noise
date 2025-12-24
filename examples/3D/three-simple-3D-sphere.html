@@ -17,11 +17,15 @@
     <!-- <script src="../uber-noise.js"></script> -->
 
     <!-- for production -->
-    <script src="https://cdn.jsdelivr.net/npm/uber-noise@0.1.7"></script>
+    <!-- <script src="https://unpkg.com/uber-noise@next"></script> -->
+    <script
+      src="https://unpkg.com/uber-noise@0.3.0"
+    ></script>
   </head>
 
   <body style="overflow: hidden; background-color: rgb(0, 0, 0)">
     <script type="module">
+      // import { UberNoise } from "https://unpkg.com/uber-noise@0.3.0-rc1/dist/uber-noise.modern.js";
       var renderer,
         scene,
         camera,
@@ -39,16 +43,16 @@
         document.body.appendChild(renderer.domElement);
 
         let d = renderer.domElement;
-        d.style.position = "absolute";
-        d.style.left = "0px";
-        d.style.top = "0px";
+        d.style.position = 'absolute';
+        d.style.left = '0px';
+        d.style.top = '0px';
 
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(
           60,
           window.innerWidth / window.innerHeight,
           0.1,
-          150
+          150,
         );
 
         scene.add(camera);
@@ -57,16 +61,16 @@
         scene.background = new THREE.Color(background);
 
         document.addEventListener(
-          "keydown",
+          'keydown',
           (event) => (keys[event.key] = true),
-          false
+          false,
         );
         document.addEventListener(
-          "keyup",
+          'keyup',
           (event) => (keys[event.key] = false),
-          false
+          false,
         );
-        window.addEventListener("resize", onWindowResize, false);
+        window.addEventListener('resize', onWindowResize, false);
 
         lights.ambi = new THREE.AmbientLight(0xffffff, 0.2); // soft white light
         scene.add(lights.ambi);
@@ -83,7 +87,7 @@
       function makeSphere() {
         let geo = new THREE.IcosahedronGeometry(1, 50);
 
-        let points = geo.getAttribute("position").array;
+        let points = geo.getAttribute('position').array;
         let colorData = new Float32Array(points.length);
         let positionData = new Float32Array(points.length);
 
@@ -108,11 +112,11 @@
           colorData[i] = colorData[i + 1] = colorData[i + 2] = v;
         }
         geo.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positionData, 3)
+          'position',
+          new THREE.BufferAttribute(positionData, 3),
         );
 
-        geo.setAttribute("color", new THREE.BufferAttribute(colorData, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(colorData, 3));
 
         let mat = new THREE.MeshStandardMaterial({
           flatShading: false,
